@@ -1,0 +1,19 @@
+{
+	// Client ID
+	"applicationId": "1166546311101820959",
+	// Activity details { 0, 2, 3, 5 }
+	"type": 5,
+	"name": "Yapping",
+	"details": "About Linux",
+	"state": "I use Arch btw",
+	// Images
+	"largeImageKey": "normal04",
+	"largeImageText": "Madeline (from Celeste)",
+	"smallImageKey": "archlinux",
+	"smallImageText": "Arch Linux",
+	// Refresh time on config reload
+	"refreshTime": false,
+	// Set ONE of manual time (activity start time as UNIX timestamp) or duration to control shown activity duration
+	// "manualTime": 1766321471,
+	"manualDuration": 303168,
+}

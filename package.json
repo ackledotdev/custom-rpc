@@ -1,0 +1,33 @@
+{
+	"name": "custom-rpc",
+	"private": true,
+	"version": "0.0.0",
+	"description": "",
+	"homepage": "https://github.com/ackledotdev/custom-rpc#readme",
+	"bugs": {
+		"url": "https://github.com/ackledotdev/custom-rpc/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ackledotdev/custom-rpc.git"
+	},
+	"license": "MIT",
+	"author": "Akhil Pillai <ackledotdev@gmail.com>",
+	"type": "module",
+	"scripts": {
+		"start": "tsx src/index.ts",
+		"build": "npm run fmt && tsc",
+		"fmt": "prettier --write ."
+	},
+	"dependencies": {
+		"@xhayper/discord-rpc": "^1.3.0",
+		"jsonc-parser": "^3.3.1"
+	},
+	"devDependencies": {
+		"@types/node": "^25.0.3",
+		"npm-check-updates": "^19.2.0",
+		"prettier": "^3.7.4",
+		"tsx": "^4.21.0",
+		"typescript": "^5.9.3"
+	}
+}
