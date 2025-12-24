@@ -1,7 +1,7 @@
 {
 	// Client ID
 	"applicationId": "1166546311101820959",
-	// Activity details { 0, 2, 3, 5 }
+	// Activity details { 0, 2, 3, 5 } { Playing, Listening, Watching, Competing in }
 	"type": 5,
 	"name": "Yapping",
 	"details": "About Linux",
@@ -13,7 +13,7 @@
 	"smallImageText": "Arch Linux",
 	// Refresh time on config reload
 	"refreshTime": false,
-	// Set ONE of manual time (activity start time as UNIX timestamp) or duration to control shown activity duration
-	// "manualTime": 1766321471,
-	"manualDuration": 303168,
+	// Optionally set ONE of manual time (activity start time as UNIX timestamp in seconds) or duration to control shown activity duration
+	// "manualTime": 1766523878,
+	"manualDuration": 1476,
 }

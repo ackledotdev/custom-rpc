@@ -1,0 +1,10 @@
+[Unit]
+Description=Custom RPC – Set custom Discord Rich Presence via Remote Procedure Calls
+After=default.target
+
+[Service]
+ExecStart=/usr/bin/env npm start --prefix=/path/to/git/custom-rpc
+Restart=always
+
+[Install]
+WantedBy=default.target
