@@ -56,7 +56,7 @@ process.on('SIGINFO', exit);
 process.on('SIGINT', exit);
 process.on('SIGIO', exit);
 process.on('SIGIOT', exit);
-process.on('SIGKILL', exit);
+// process.on('SIGKILL', exit); // cannot be caught
 process.on('SIGLOST', exit);
 process.on('SIGPIPE', exit);
 process.on('SIGPOLL', exit);
@@ -66,7 +66,7 @@ process.on('SIGQUIT', exit);
 process.on('SIGSEGV', exit);
 process.on('SIGSTKFLT', exit);
 
-process.on('SIGSTOP', pause);
+// process.on('SIGSTOP', pause); // cannot be caught
 process.on('SIGTSTP', pause);
 
 process.on('SIGSYS', exit);
