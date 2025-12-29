@@ -25,6 +25,9 @@ vi config.jsonc # Edit as desired
 npm start
 ```
 
+> [!CAUTION]
+> If your Discord online status (Online, Do Not Disturb, Invisible) is set to Invisible, your current Activity (including Rich Presence!) will be hidden.
+
 > [!IMPORTANT]
 > Running the app with the default config file will produce something similar to the sample image, assuming that is up-to-date.
 > You must edit the config file and specify your own Client ID from the Discord Developer Portal to add your own images. See "Advanced setup". If you are not using images, this will not be necessary, but you must comment out the image section to hide the images.
