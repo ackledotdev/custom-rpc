@@ -12,13 +12,14 @@ Set custom Discord Rich Presence via Remote Procedure Calls.
 
 ## Bare minimum
 
-Clone the repo, install dependencies, edit the config file, and run the app. Simple.
+Clone the repo, install dependencies, copy and edit the config file, and run the app. Simple.
 
 ```bash
 git clone https://github.com/ackledotdev/custom-rpc.git # gh repo clone ackledotdev/custom-rpc
 cd custom-rpc
 npm i
-vi config.jsonc # Edit the config file
+cp example.jsonc config.jsonc # Copy the example config file
+vi config.jsonc # Edit as desired
 npm start
 ```
 
@@ -67,4 +68,21 @@ Optionally, edit the `ExecStart` line to include the `watch` argument to refresh
 ExecStart=/usr/bin/npm start --prefix=/path/to/git/custom-rpc -- watch
 ```
 
-However, this will create a file watcher that scans continuously for updates. The service can always be refreshed manually with `systemctl --user restart custom-rpc.service` after editing the config file. Note that the `refreshTime` value is only read on initial startup; to accept a new value, the service _must_ be restarted.
+However, this will create a file watcher that scans continuously for updates. The service can always be refreshed manually with `systemctl --user restart custom-rpc.service` after editing the config file. ~~Note that the `refreshTime` value is only read on initial startup; to accept a new value, the service _must_ be restarted.~~ That is no longer the case. `refreshTime` is handled on config reload.
+
+## Config hotswitch
+
+Configs can be switched on the fly by starting the process with the `watch` argument in either the CLI or systemd unit file. Instead of editing the config file, create multiple config files and copy the desired config to `config.jsonc`.
+
+```bash
+cp example.jsonc config.jsonc # switch to example.jsonc
+cp /home/user/another_config.jsonc config.jsonc # switch to another_config.jsonc
+echo '{}' > config.jsonc # clear Rich Presence
+echo '' > config.jsonc # another way to clear Rich Presence
+```
+
+The app will detect the change and reload the new config automatically. An empty config file or one containing an empty object (`{}`) will disconnect from the Rich Presence server without terminating the app.
+
+- File watch mode must be enabled.
+- It is imperative that the file exists the entire time the app is running; deleting the file will cause the program to terminate with an error. An empty config file will allow the program to keep watching but clear the Rich Presence.
+- The config loaded at startup **must** have the correct Client ID for the Discord application; changing the Client ID on the fly is not supported and will be ignored.

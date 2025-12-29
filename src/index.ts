@@ -11,34 +11,50 @@ const ConfigPath = join(
 	'config.jsonc'
 );
 
-let Config: Cfg = await readConfig();
+let Config: Cfg | null = await readConfig();
+
+if (Config === null) {
+	console.log(
+		'Configuration file is missing or empty. Startup config must exist.'
+	);
+	process.exit(1);
+}
+
+if (!Config.applicationId) {
+	console.log('Application ID is missing in the configuration file.');
+	process.exit(1);
+}
 
 let paused = false;
+let connected = false;
 
 const client = new Client({
 	transport: { type: 'ipc' },
 	clientId: Config.applicationId,
 });
 
-await client.login();
-console.log('Logged in');
-
-const firstTime = Math.floor(Date.now() / 1000);
-
-await client.user!.setActivity({
-	...Config,
-	startTimestamp:
-		Config.manualTime ??
-		(Config.manualDuration ? firstTime - Config.manualDuration : firstTime),
-});
-
-process.stdin.resume();
-console.log('Process is running. Press Ctrl+C to exit.');
-
 if (process.argv.includes('watch')) {
-	watch(ConfigPath, refreshConfig);
+	watch(ConfigPath, refreshConfig)
+		.on('error', (err) => console.log('File watcher error:', err))
+		.on('close', () => console.log('File watcher closed.'));
 	console.log('Watching configuration file for changes...');
 }
+
+await client.login();
+connected = true;
+console.log('Logged in');
+
+let lastRefreshTime = Math.floor(Date.now() / 1000);
+
+if (Config !== null)
+	await client.user!.setActivity({
+		...Config,
+		startTimestamp:
+			Config.manualTime ??
+			(Config.manualDuration
+				? lastRefreshTime - Config.manualDuration
+				: lastRefreshTime),
+	});
 
 //#region all the signal handlers, because why not
 process.on('SIGABRT', exit);
@@ -85,27 +101,40 @@ process.on('SIGXCPU', exit);
 process.on('SIGXFSZ', exit);
 //#endregion
 
+process.stdin.resume();
+console.log('Process is running. Press Ctrl+C to exit.');
+
 async function exit() {
 	await client.destroy();
+	connected = false;
 	console.log('\nDisconnected');
 	process.exit(0);
 }
 
 async function pause() {
 	paused = true;
-	await client.user!.clearActivity();
-	console.log('Activity cleared. Paused.');
+	if (connected) {
+		await client.destroy();
+		connected = false;
+	}
+	console.log('Disconnected and paused.');
 }
 
 async function resume() {
-	await client.user!.setActivity({
-		...Config,
-		startTimestamp:
-			Config.manualTime ??
-			(Config.manualDuration
-				? Math.floor(Date.now() / 1000) - Config.manualDuration
-				: firstTime),
-	});
+	if (Config !== null) {
+		if (!connected) {
+			await client.connect();
+			connected = true;
+		}
+		await client.user!.setActivity({
+			...Config,
+			startTimestamp:
+				Config.manualTime ??
+				(Config.manualDuration
+					? Math.floor(Date.now() / 1000) - Config.manualDuration
+					: lastRefreshTime),
+		});
+	}
 	console.log('Activity restored. Resumed.');
 	paused = false;
 }
@@ -113,14 +142,28 @@ async function resume() {
 async function refreshConfig() {
 	console.log('Configuration file changed. Reloading...');
 
-	if (paused) {
-		console.log('Currently paused. Skipping activity update.');
+	if (paused) return console.log('Currently paused. Skipping activity update.');
+
+	Config = await readConfig();
+
+	if (Config === null || Object.keys(Config).length === 0) {
+		console.log(
+			'Failed to read new configuration, or it is empty. Disconnecting.'
+		);
+		if (connected) {
+			await client.destroy();
+			connected = false;
+		}
 		return;
 	}
 
-	let NewConfig = await readConfig();
-	Config = NewConfig as unknown as Cfg;
-	client.user!.clearActivity();
+	if (Config.refreshTime) lastRefreshTime = Math.floor(Date.now() / 1000);
+
+	if (!connected) {
+		await client.connect();
+		connected = true;
+	}
+
 	await client.user!.setActivity({
 		...Config,
 		startTimestamp:
@@ -129,7 +172,7 @@ async function refreshConfig() {
 				? Math.floor(Date.now() / 1000) - Config.manualDuration
 				: Config.refreshTime
 					? Math.floor(Date.now() / 1000)
-					: firstTime),
+					: lastRefreshTime),
 	});
 	console.log('Configuration reloaded and activity updated.');
 }
@@ -152,12 +195,19 @@ interface Cfg {
 	manualDuration?: number;
 }
 
-async function readConfig(): Promise<Cfg> {
-	const data = await readFile(ConfigPath, 'utf-8');
-	const parsed = parse(data, [], {
+async function readConfig(): Promise<Cfg | null> {
+	const data = await readFile(ConfigPath, 'utf-8').catch((err) => {
+		console.log(`Error reading config file at ${ConfigPath}:`, err);
+		return null;
+	});
+	if (data === null) return null;
+	// Intentional use of ||
+	const parsed = parse(data || '{}', undefined, {
 		allowEmptyContent: true,
 		allowTrailingComma: true,
 		disallowComments: false,
 	}) as Cfg;
-	return { ...parsed, refreshTime: parsed.refreshTime ?? true } as Cfg;
+	return parsed && Object.keys(parsed).length > 0
+		? ({ ...parsed, refreshTime: parsed.refreshTime ?? true } as Cfg)
+		: null;
 }
