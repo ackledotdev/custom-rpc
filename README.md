@@ -8,6 +8,8 @@ Set custom Discord Rich Presence via Remote Procedure Calls.
 > When the activity type is 5 (Competing in), the activity name is placed in the "Competing in {name}" string, the details field replaces the name in the bolded title, and the state field is just below. The third line is, for whatever reason, filled in with the large image hover text.
 > If the activity type is changed to 0 (Playing), the bold title would be "Yapping", and the two lines below would contian the details and state fields, respectively, and the large image hover text would only appear when hovering over the large image.
 
+Please create an issue for any unintended behavior. PRs and other contributions are welcome.
+
 ## Usage
 
 ## Bare minimum
