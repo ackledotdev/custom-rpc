@@ -60,24 +60,23 @@ A sample systemd user unit file is provided.
 
 ```bash
 cp custom-rpc.service ~/.config/systemd/user/ # copy the service file
-vi ~/.config/systemd/user/custom-rpc.service # edit the ExecStart path to point to your installation
-
-systemctl --user enable --now custom-rpc.service # enable the service to start on login if desired
+vi ~/.config/systemd/user/custom-rpc.service # edit the ExecStarta path to point to your installation
+systemctl --user enable --now custom-rpc.service # start the service and enable start on login if desired
 # or
 systemctl --user start custom-rpc.service # start the service now
 ```
 
-Optionally, edit the `ExecStart` line to include the `watch` argument to refresh config changes without restarting the service.
+Optionally, remove the `watch` argument from the startup script to disable refreshing config changes without restarting the service.
 
-```ini
-ExecStart=/usr/bin/npm start --prefix=/path/to/git/custom-rpc -- watch
+```bash
+npm start -- watch
 ```
 
 However, this will create a file watcher that scans continuously for updates. The service can always be refreshed manually with `systemctl --user restart custom-rpc.service` after editing the config file. ~~Note that the `refreshTime` value is only read on initial startup; to accept a new value, the service _must_ be restarted.~~ That is no longer the case. `refreshTime` is handled on config reload.
 
 ## Config hotswitch
 
-Configs can be switched on the fly by starting the process with the `watch` argument in either the CLI or systemd unit file. Instead of editing the config file, create multiple config files and copy the desired config to `config.jsonc`.
+Configs can be switched on the fly by starting the process with the `watch` argument in either the CLI or systemd startup script. Instead of editing the config file, create multiple config files and copy the desired config to `config.jsonc`.
 
 ```bash
 cp example.jsonc config.jsonc # switch to example.jsonc
@@ -91,3 +90,7 @@ The app will detect the change and reload the new config automatically. An empty
 - File watch mode must be enabled.
 - It is imperative that the file exists the entire time the app is running; deleting the file will cause the program to terminate with an error. An empty config file will allow the program to keep watching but clear the Rich Presence.
 - The config loaded at startup **must** have the correct Client ID for the Discord application; changing the Client ID on the fly is not supported and will be ignored.
+
+### Symlinking configs
+
+I've tried to hotswitch configs by symlinking `config.jsonc` to different config files, but that hasn't worked consistently. If anyone gets that working, please create a pull request or something.
